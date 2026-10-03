@@ -5,16 +5,18 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
 
-  const query = event.queryStringParameters.query || '';
+  const query = (event.queryStringParameters && event.queryStringParameters.query) || '';
   const apiKey = process.env.SPOONACULAR_API_KEY;
 
   if (!apiKey) {
     return {
       statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'API key not configured' })
     };
   }
@@ -32,7 +34,7 @@ exports.handler = async (event, context) => {
         
         apiRes.on('end', () => {
           try {
-            resolve(JSON.parse(data));
+            resolve({ status: apiRes.statusCode, body: JSON.parse(data) });
           } catch (error) {
             reject(error);
           }
@@ -40,17 +42,26 @@ exports.handler = async (event, context) => {
       }).on('error', reject);
     });
 
+    if (data.status !== 200) {
+      return {
+        statusCode: data.status,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: data.body.message || 'Recipe service returned an error' })
+      };
+    }
+
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data.body)
     };
   } catch (error) {
     return {
       statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'Failed to fetch recipes' })
     };
   }
