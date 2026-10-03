@@ -1,0 +1,7 @@
+https://spoonacular.com/food-api/console
+username: lhonwai@gmail.com
+password: %C3PO+r2d2%
+API Key: 3c0e18a4da9143a58742bf6c6150aacb
+Search:
+https://api.spoonacular.com/recipes/complexSearch?query=pasta&apiKey=YOUR-KEY
+https://api.spoonacular.com/recipes/complexSearch?query=pasta&apiKey=3c0e18a4da9143a58742bf6c6150aacb

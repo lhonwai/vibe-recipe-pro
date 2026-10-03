@@ -1,0 +1,9 @@
+
+The Secure Prompt
+I want to build a 'Smart Recipe Finder' using the Spoonacular API.
+Please help me create an .env file to store my API key securely.
+Then, build the UI across index.html, style.css, and receipe.js using the key from the environment.
+reference: spoonacular API.txt
+
+Refining the Vibe
+To add hover effects and "Quick Meal" badges based on cook time.
