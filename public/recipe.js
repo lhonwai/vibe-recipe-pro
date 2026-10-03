@@ -25,10 +25,10 @@ async function searchRecipes() {
 
   try {
     const response = await fetch(`/api/recipes?query=${encodeURIComponent(query)}`);
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch recipes');
+      throw new Error(data.error || `Recipe service is unavailable (status ${response.status}). Please try again later.`);
     }
 
     displayRecipes(data.results);
@@ -38,6 +38,16 @@ async function searchRecipes() {
     hideLoading();
   }
 }
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="#eee"/><text x="50%" y="50%" font-family="sans-serif" font-size="20" fill="#999" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>'
+);
 
 function displayRecipes(recipes) {
   if (!recipes || recipes.length === 0) {
@@ -49,7 +59,7 @@ function displayRecipes(recipes) {
     const card = document.createElement('div');
     card.className = 'recipe-card';
     
-    const imageUrl = recipe.image || 'https://via.placeholder.com/400x300?text=No+Image';
+    const imageUrl = recipe.image || PLACEHOLDER_IMAGE;
     const cookTime = recipe.readyInMinutes;
     const isQuickMeal = cookTime && cookTime <= 30;
     
@@ -59,9 +69,9 @@ function displayRecipes(recipes) {
     }
     
     card.innerHTML = `
-      <img src="${imageUrl}" alt="${recipe.title}" class="recipe-image">
+      <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(recipe.title)}" class="recipe-image">
       <div class="recipe-info">
-        <h3 class="recipe-title">${recipe.title}</h3>
+        <h3 class="recipe-title">${escapeHtml(recipe.title)}</h3>
         <div class="recipe-meta">
           ${isQuickMeal ? '<span class="quick-meal-badge">Quick Meal</span>' : ''}
           ${metaContent}
@@ -70,7 +80,8 @@ function displayRecipes(recipes) {
     `;
     
     card.addEventListener('click', () => {
-      window.open(`https://spoonacular.com/recipes/${recipe.title.replace(/\s+/g, '-')}-${recipe.id}`, '_blank');
+      const slug = recipe.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      window.open(`https://spoonacular.com/recipes/${slug}-${recipe.id}`, '_blank', 'noopener');
     });
     
     results.appendChild(card);
